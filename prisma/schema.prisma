@@ -1,0 +1,315 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USER & AUTH ====================
+
+enum UserRole {
+  ADMIN
+  DESIGNER
+  PRINTER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  role          UserRole  @default(DESIGNER)
+  avatar        String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  assignedOrders Order[]         @relation("DesignerOrders")
+  timelineEvents TimelineEvent[]
+  drafts         Draft[]
+  printGroups    PrintGroup[]    @relation("PrinterGroups")
+
+  @@map("users")
+}
+
+// ==================== SHOPIFY STORE ====================
+
+model ShopifyStore {
+  id            String   @id @default(cuid())
+  domain        String   @unique
+  accessToken   String
+  name          String?
+  email         String?
+  isActive      Boolean  @default(true)
+  lastSyncAt    DateTime?
+  webhookSecret String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  orders Order[]
+
+  @@map("shopify_stores")
+}
+
+// ==================== ORDERS ====================
+
+enum OrderStatus {
+  IMPORTED
+  ASSIGNED
+  DRAFT_SENT
+  DRAFT_APPROVED
+  DRAFT_REJECTED
+  PENDING_PRINT
+  PRINTED
+  FULFILLED
+}
+
+model Order {
+  id                  String      @id @default(cuid())
+  shopifyId           String      @unique
+  orderNumber         String
+  name                String      // Shopify order name like #1001
+
+  // Financial
+  financialStatus     String?
+  fulfillmentStatus   String?
+  totalPrice          Decimal?    @db.Decimal(10, 2)
+  currency            String?     @default("USD")
+
+  // Customer Info
+  customerEmail       String?
+  customerPhone       String?
+  customerFirstName   String?
+  customerLastName    String?
+
+  // Shipping
+  shippingFirstName   String?
+  shippingLastName    String?
+  shippingAddress1    String?
+  shippingAddress2    String?
+  shippingCity        String?
+  shippingProvince    String?
+  shippingCountry     String?
+  shippingZip         String?
+  shippingPhone       String?
+
+  // Metadata
+  tags                String[]
+  note                String?
+  shopifyNote         String?     @db.Text
+  shopifyCreatedAt    DateTime?
+  shopifyUpdatedAt    DateTime?
+
+  // Internal Status
+  status              OrderStatus @default(IMPORTED)
+
+  // Approval
+  approvalToken       String?     @unique
+  approvalSentAt      DateTime?
+  approvalExpiresAt   DateTime?
+  approvedAt          DateTime?
+  rejectedAt          DateTime?
+  rejectionReason     String?     @db.Text
+
+  // Tracking
+  trackingNumber      String?
+  trackingCarrier     String?
+  fulfilledAt         DateTime?
+
+  // Timestamps
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  // Relations
+  store               ShopifyStore @relation(fields: [storeId], references: [id])
+  storeId             String
+  designer            User?        @relation("DesignerOrders", fields: [designerId], references: [id])
+  designerId          String?
+  lineItems           LineItem[]
+  customerImages      CustomerImage[]
+  drafts              Draft[]
+  timelineEvents      TimelineEvent[]
+  printGroup          PrintGroup?  @relation(fields: [printGroupId], references: [id])
+  printGroupId        String?
+
+  @@index([status])
+  @@index([orderNumber])
+  @@index([designerId])
+  @@index([storeId])
+  @@index([shopifyCreatedAt])
+  @@map("orders")
+}
+
+// ==================== LINE ITEMS ====================
+
+model LineItem {
+  id              String   @id @default(cuid())
+  shopifyId       String   @unique
+
+  // Product Info
+  title           String
+  variantTitle    String?
+  sku             String?
+  quantity        Int      @default(1)
+  price           Decimal? @db.Decimal(10, 2)
+
+  // Product Details
+  productId       String?
+  variantId       String?
+
+  // Properties (custom options like size, color)
+  properties      Json?
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId         String
+
+  @@index([orderId])
+  @@map("line_items")
+}
+
+// ==================== CUSTOMER IMAGES ====================
+
+model CustomerImage {
+  id          String   @id @default(cuid())
+  filename    String
+  originalUrl String   // URL from Shopify
+  storedUrl   String?  // Our storage URL
+  fileSize    Int?
+  mimeType    String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId     String
+
+  @@index([orderId])
+  @@map("customer_images")
+}
+
+// ==================== DRAFTS ====================
+
+enum DraftStatus {
+  PENDING
+  SENT
+  APPROVED
+  REJECTED
+}
+
+model Draft {
+  id            String      @id @default(cuid())
+  version       Int         @default(1)
+  filename      String
+  fileUrl       String
+  fileSize      Int?
+
+  status        DraftStatus @default(PENDING)
+
+  // Rejection info
+  rejectionNote String?     @db.Text
+  rejectionImage String?    // Customer uploaded correction
+
+  // Timestamps
+  sentAt        DateTime?
+  respondedAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  order         Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId       String
+  designer      User        @relation(fields: [designerId], references: [id])
+  designerId    String
+
+  @@index([orderId])
+  @@index([designerId])
+  @@index([status])
+  @@map("drafts")
+}
+
+// ==================== TIMELINE ====================
+
+enum TimelineAction {
+  ORDER_IMPORTED
+  ORDER_UPDATED
+  DESIGNER_ASSIGNED
+  DRAFT_UPLOADED
+  DRAFT_SENT
+  DRAFT_APPROVED
+  DRAFT_REJECTED
+  DRAFT_AUTO_APPROVED
+  ADDED_TO_PRINT_QUEUE
+  PRINT_GROUP_CREATED
+  QC_COMPLETED
+  MARKED_PRINTED
+  TRACKING_ADDED
+  ORDER_FULFILLED
+  NOTE_ADDED
+  STATUS_CHANGED
+}
+
+model TimelineEvent {
+  id          String         @id @default(cuid())
+  action      TimelineAction
+  description String
+  metadata    Json?          // Additional context
+
+  // Shopify sync
+  syncedToShopify Boolean    @default(false)
+  shopifySyncedAt DateTime?
+
+  createdAt   DateTime       @default(now())
+
+  // Relations
+  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId     String
+  user        User?          @relation(fields: [userId], references: [id])
+  userId      String?
+
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("timeline_events")
+}
+
+// ==================== PRINT GROUPS ====================
+
+enum PrintGroupStatus {
+  PENDING
+  IN_PROGRESS
+  QC_COMPLETED
+  PRINTED
+}
+
+model PrintGroup {
+  id          String           @id @default(cuid())
+  name        String
+  status      PrintGroupStatus @default(PENDING)
+
+  zipUrl      String?
+  finalFileUrl String?
+
+  // QC
+  qcCompletedAt DateTime?
+  printedAt     DateTime?
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  orders      Order[]
+  printer     User?            @relation("PrinterGroups", fields: [printerId], references: [id])
+  printerId   String?
+
+  @@index([status])
+  @@map("print_groups")
+}

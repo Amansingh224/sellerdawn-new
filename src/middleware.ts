@@ -1,0 +1,56 @@
+import { auth } from "@/lib/auth"
+
+export default auth((req) => {
+  const isLoggedIn = !!req.auth
+  const { pathname } = req.nextUrl
+
+  // Public routes
+  const publicRoutes = ["/login", "/approval"]
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+
+  // API routes that should be public
+  const isAuthApi = pathname.startsWith("/api/auth")
+  const isShopifyWebhook = pathname.startsWith("/api/shopify/webhook")
+  const isApprovalApi = pathname.startsWith("/api/approval")
+
+  // Allow public routes
+  if (isPublicRoute || isAuthApi || isShopifyWebhook || isApprovalApi) {
+    return
+  }
+
+  // Redirect to login if not authenticated
+  if (!isLoggedIn && pathname !== "/") {
+    const loginUrl = new URL("/login", req.url)
+    loginUrl.searchParams.set("callbackUrl", pathname)
+    return Response.redirect(loginUrl)
+  }
+
+  // Redirect root to dashboard if logged in
+  if (isLoggedIn && pathname === "/") {
+    return Response.redirect(new URL("/dashboard", req.url))
+  }
+
+  // Role-based access control
+  if (isLoggedIn && req.auth?.user?.role) {
+    const role = req.auth.user.role
+
+    // Admin-only routes
+    if (pathname.startsWith("/dashboard/admin") && role !== "ADMIN") {
+      return Response.redirect(new URL("/dashboard", req.url))
+    }
+
+    // Designer routes
+    if (pathname.startsWith("/dashboard/designer") && !["ADMIN", "DESIGNER"].includes(role)) {
+      return Response.redirect(new URL("/dashboard", req.url))
+    }
+
+    // Printer routes
+    if (pathname.startsWith("/dashboard/printer") && !["ADMIN", "PRINTER"].includes(role)) {
+      return Response.redirect(new URL("/dashboard", req.url))
+    }
+  }
+})
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)"],
+}
