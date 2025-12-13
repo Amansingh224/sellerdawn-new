@@ -21,7 +21,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <DashboardStats />
+      <DashboardStats userRole={session.user.role} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Orders */}
