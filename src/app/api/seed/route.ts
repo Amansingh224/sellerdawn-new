@@ -99,8 +99,9 @@ export async function GET(request: Request) {
             create: [
               {
                 action: "ORDER_IMPORTED",
-                performedById: admin.id,
-                details: { source: "Seed data" }
+                description: "Order imported from seed data",
+                userId: admin.id,
+                metadata: { source: "Seed data" }
               }
             ]
           }
