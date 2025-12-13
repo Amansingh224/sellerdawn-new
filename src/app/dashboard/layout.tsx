@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { auth } from "@/lib/auth"
+import { getSession } from "@/lib/get-session"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -9,7 +9,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
+  const session = await getSession()
 
   if (!session?.user) {
     redirect("/login")

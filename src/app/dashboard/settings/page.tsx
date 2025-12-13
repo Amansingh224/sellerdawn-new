@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth"
+import { getSession } from "@/lib/get-session"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Store, Key, Bell, Users } from "lucide-react"
 
 export default async function SettingsPage() {
-  const session = await auth()
+  const session = await getSession()
 
   if (!session?.user || session.user.role !== "ADMIN") {
     redirect("/dashboard")

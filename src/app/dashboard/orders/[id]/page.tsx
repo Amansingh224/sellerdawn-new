@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth"
+import { getSession } from "@/lib/get-session"
 import { redirect, notFound } from "next/navigation"
 import { db } from "@/lib/db"
 import { OrderDetail } from "@/components/orders/order-detail"
@@ -8,7 +8,7 @@ interface OrderPageProps {
 }
 
 export default async function OrderPage({ params }: OrderPageProps) {
-  const session = await auth()
+  const session = await getSession()
   const { id } = await params
 
   if (!session?.user) {

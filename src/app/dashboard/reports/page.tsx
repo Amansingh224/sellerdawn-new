@@ -1,10 +1,10 @@
-import { auth } from "@/lib/auth"
+import { getSession } from "@/lib/get-session"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart3 } from "lucide-react"
 
 export default async function ReportsPage() {
-  const session = await auth()
+  const session = await getSession()
 
   if (!session?.user || session.user.role !== "ADMIN") {
     redirect("/dashboard")

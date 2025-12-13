@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth"
+import { getSession } from "@/lib/get-session"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
 import { OrdersTable } from "@/components/orders/orders-table"
@@ -18,7 +18,7 @@ function OrdersTableFallback() {
 }
 
 export default async function OrdersPage() {
-  const session = await auth()
+  const session = await getSession()
 
   if (!session?.user) {
     redirect("/login")

@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth"
+import { getSession } from "@/lib/get-session"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { UserRole } from "@prisma/client"
 
 export default async function DesignersPage() {
-  const session = await auth()
+  const session = await getSession()
 
   if (!session?.user || session.user.role !== "ADMIN") {
     redirect("/dashboard")

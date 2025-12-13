@@ -1,8 +1,19 @@
 import { auth } from "@/lib/auth"
+import { NextResponse } from "next/server"
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth
   const { pathname } = req.nextUrl
+
+  // Check for dev session cookie as fallback
+  const devSession = req.cookies.get("dev-session")?.value
+  let devUser = null
+  if (devSession) {
+    try {
+      devUser = JSON.parse(devSession)?.user
+    } catch {}
+  }
+  const hasDevSession = !!devUser
 
   // Public routes
   const publicRoutes = ["/login", "/approval"]
@@ -15,28 +26,32 @@ export default auth((req) => {
   const isHealthApi = pathname === "/api/health"
   const isSetupApi = pathname === "/api/setup"
   const isDebugApi = pathname === "/api/auth-debug"
+  const isSeedApi = pathname === "/api/seed"
+  const isDevLoginApi = pathname === "/api/dev-login"
 
   // Allow public routes
-  if (isPublicRoute || isAuthApi || isShopifyWebhook || isApprovalApi || isHealthApi || isSetupApi || isDebugApi) {
+  if (isPublicRoute || isAuthApi || isShopifyWebhook || isApprovalApi || isHealthApi || isSetupApi || isDebugApi || isSeedApi || isDevLoginApi) {
     return
   }
 
+  // Check if user is authenticated (NextAuth or dev session)
+  const isAuthenticated = isLoggedIn || hasDevSession
+
   // Redirect to login if not authenticated
-  if (!isLoggedIn && pathname !== "/") {
+  if (!isAuthenticated && pathname !== "/") {
     const loginUrl = new URL("/login", req.url)
     loginUrl.searchParams.set("callbackUrl", pathname)
     return Response.redirect(loginUrl)
   }
 
   // Redirect root to dashboard if logged in
-  if (isLoggedIn && pathname === "/") {
+  if (isAuthenticated && pathname === "/") {
     return Response.redirect(new URL("/dashboard", req.url))
   }
 
   // Role-based access control
-  if (isLoggedIn && req.auth?.user?.role) {
-    const role = req.auth.user.role
-
+  const role = req.auth?.user?.role || devUser?.role
+  if (isAuthenticated && role) {
     // Admin-only routes
     if (pathname.startsWith("/dashboard/admin") && role !== "ADMIN") {
       return Response.redirect(new URL("/dashboard", req.url))

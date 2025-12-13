@@ -1,11 +1,11 @@
-import { auth } from "@/lib/auth"
+import { getSession } from "@/lib/get-session"
 import { redirect } from "next/navigation"
 import { DashboardStats } from "@/components/dashboard/stats"
 import { RecentOrders } from "@/components/dashboard/recent-orders"
 import { ActivityFeed } from "@/components/dashboard/activity-feed"
 
 export default async function DashboardPage() {
-  const session = await auth()
+  const session = await getSession()
 
   if (!session?.user) {
     redirect("/login")

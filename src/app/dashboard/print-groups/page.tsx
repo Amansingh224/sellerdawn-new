@@ -1,10 +1,10 @@
-import { auth } from "@/lib/auth"
+import { getSession } from "@/lib/get-session"
 import { redirect } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { ClipboardList } from "lucide-react"
 
 export default async function PrintGroupsPage() {
-  const session = await auth()
+  const session = await getSession()
 
   if (!session?.user) {
     redirect("/login")
