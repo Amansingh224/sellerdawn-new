@@ -1,34 +1,36 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
-import { XCircle } from "lucide-react"
+import { ClipboardList } from "lucide-react"
 
-export const dynamic = 'force-dynamic'
-
-export default async function RejectionsPage() {
+export default async function PrintGroupsPage() {
   const session = await auth()
 
   if (!session?.user) {
     redirect("/login")
   }
 
+  if (session.user.role === "DESIGNER") {
+    redirect("/dashboard")
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Draft Rejections</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Print Groups</h1>
         <p className="text-muted-foreground">
-          Drafts that need revision
+          Manage batches of orders for printing
         </p>
       </div>
 
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <div className="rounded-full bg-muted p-3 mb-3">
-            <XCircle className="h-6 w-6 text-muted-foreground" />
+            <ClipboardList className="h-6 w-6 text-muted-foreground" />
           </div>
-          <p className="text-muted-foreground">No rejected drafts</p>
+          <p className="text-muted-foreground">No print groups created</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Rejected drafts will appear here for revision
+            Create print groups from the print queue
           </p>
         </CardContent>
       </Card>

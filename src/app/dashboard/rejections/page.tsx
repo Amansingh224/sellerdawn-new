@@ -1,34 +1,32 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
-import { Truck } from "lucide-react"
+import { XCircle } from "lucide-react"
 
-export const dynamic = 'force-dynamic'
-
-export default async function FulfillmentPage() {
+export default async function RejectionsPage() {
   const session = await auth()
 
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/dashboard")
+  if (!session?.user) {
+    redirect("/login")
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Fulfillment</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Draft Rejections</h1>
         <p className="text-muted-foreground">
-          Add tracking numbers and fulfill orders
+          Drafts that need revision
         </p>
       </div>
 
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <div className="rounded-full bg-muted p-3 mb-3">
-            <Truck className="h-6 w-6 text-muted-foreground" />
+            <XCircle className="h-6 w-6 text-muted-foreground" />
           </div>
-          <p className="text-muted-foreground">No orders pending fulfillment</p>
+          <p className="text-muted-foreground">No rejected drafts</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Printed orders will appear here for tracking upload
+            Rejected drafts will appear here for revision
           </p>
         </CardContent>
       </Card>
