@@ -32,9 +32,10 @@ export default auth((req) => {
   const isQuickSyncApi = pathname === "/api/shopify/quick-sync"
   const isShopifyTestApi = pathname === "/api/shopify/test"
   const isCronApi = pathname === "/api/cron/sync"
+  const isCleanupApi = pathname === "/api/cleanup"
 
   // Allow public routes
-  if (isPublicRoute || isAuthApi || isShopifyWebhook || isApprovalApi || isHealthApi || isSetupApi || isDebugApi || isSeedApi || isDevLoginApi || isQuickConnectApi || isQuickSyncApi || isShopifyTestApi || isCronApi) {
+  if (isPublicRoute || isAuthApi || isShopifyWebhook || isApprovalApi || isHealthApi || isSetupApi || isDebugApi || isSeedApi || isDevLoginApi || isQuickConnectApi || isQuickSyncApi || isShopifyTestApi || isCronApi || isCleanupApi) {
     return
   }
 
