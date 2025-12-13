@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { getApiSession } from "@/lib/api-session"
 import { syncShopifyOrders } from "@/lib/shopify/sync"
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   try {
-    const session = await auth()
+    const session = await getApiSession()
 
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json(
