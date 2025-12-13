@@ -20,13 +20,30 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Run /api/setup first to create users" }, { status: 400 })
     }
 
+    // Create or get demo store
+    let store = await db.shopifyStore.findUnique({
+      where: { domain: "demo-store.myshopify.com" }
+    })
+
+    if (!store) {
+      store = await db.shopifyStore.create({
+        data: {
+          domain: "demo-store.myshopify.com",
+          accessToken: "demo-token",
+          name: "Demo Store",
+          email: "demo@sellerdawn.com",
+          isActive: true,
+        }
+      })
+    }
+
     // Sample customer data
     const customers = [
-      { name: "John Smith", email: "john@example.com" },
-      { name: "Sarah Johnson", email: "sarah@example.com" },
-      { name: "Mike Williams", email: "mike@example.com" },
-      { name: "Emily Brown", email: "emily@example.com" },
-      { name: "David Lee", email: "david@example.com" },
+      { firstName: "John", lastName: "Smith", email: "john@example.com" },
+      { firstName: "Sarah", lastName: "Johnson", email: "sarah@example.com" },
+      { firstName: "Mike", lastName: "Williams", email: "mike@example.com" },
+      { firstName: "Emily", lastName: "Brown", email: "emily@example.com" },
+      { firstName: "David", lastName: "Lee", email: "david@example.com" },
     ]
 
     // Sample products
@@ -39,15 +56,8 @@ export async function GET(request: Request) {
       { title: "Custom Tote Bag", sku: "TOT-BAG-006", variant: "Standard" },
     ]
 
-    // Sample image URLs (placeholder images)
-    const sampleImages = [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
-      "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400",
-      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400",
-    ]
-
-    const statuses = ["PENDING_ASSIGNMENT", "ASSIGNED", "IN_PROGRESS", "PENDING_APPROVAL", "APPROVED", "PRINTING", "SHIPPED"]
-    const priorities = ["LOW", "NORMAL", "HIGH", "URGENT"]
+    // Valid OrderStatus enum values
+    const statuses = ["IMPORTED", "ASSIGNED", "DRAFT_SENT", "DRAFT_APPROVED", "PENDING_PRINT", "PRINTED", "FULFILLED"]
 
     const createdOrders = []
 
@@ -56,33 +66,32 @@ export async function GET(request: Request) {
       const customer = customers[Math.floor(Math.random() * customers.length)]
       const product = products[Math.floor(Math.random() * products.length)]
       const status = statuses[Math.floor(Math.random() * statuses.length)]
-      const priority = priorities[Math.floor(Math.random() * priorities.length)]
 
       // Determine if order should have a designer assigned
-      const shouldAssign = status !== "PENDING_ASSIGNMENT"
+      const shouldAssign = status !== "IMPORTED"
 
       const order = await db.order.create({
         data: {
-          shopifyOrderId: `SHOP-${Date.now()}-${i}`,
-          shopifyOrderNumber: `#${1000 + i}`,
-          customerName: customer.name,
+          shopifyId: `SHOP-${Date.now()}-${i}`,
+          orderNumber: `${1000 + i}`,
+          name: `#${1000 + i}`,
+          customerFirstName: customer.firstName,
+          customerLastName: customer.lastName,
           customerEmail: customer.email,
           status: status as any,
-          priority: priority as any,
-          dueDate: new Date(Date.now() + (Math.random() * 14 + 1) * 24 * 60 * 60 * 1000), // 1-15 days from now
+          totalPrice: parseFloat((Math.random() * 100 + 20).toFixed(2)),
+          financialStatus: "paid",
+          storeId: store.id,
           designerId: shouldAssign && designer ? designer.id : null,
           lineItems: {
             create: [
               {
-                shopifyLineItemId: `LINE-${Date.now()}-${i}`,
-                productTitle: product.title,
+                shopifyId: `LINE-${Date.now()}-${i}`,
+                title: product.title,
                 variantTitle: product.variant,
                 sku: product.sku,
                 quantity: Math.floor(Math.random() * 3) + 1,
                 price: parseFloat((Math.random() * 50 + 10).toFixed(2)),
-                requiresDesign: true,
-                designStatus: shouldAssign ? "IN_PROGRESS" : "PENDING",
-                customerImages: sampleImages.slice(0, Math.floor(Math.random() * 2) + 1),
               }
             ]
           },
@@ -100,8 +109,8 @@ export async function GET(request: Request) {
 
       createdOrders.push({
         id: order.id,
-        orderNumber: order.shopifyOrderNumber,
-        customer: customer.name,
+        orderNumber: order.name,
+        customer: `${customer.firstName} ${customer.lastName}`,
         status: order.status,
       })
     }
@@ -109,6 +118,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       message: `Created ${createdOrders.length} sample orders`,
+      store: { id: store.id, name: store.name },
       orders: createdOrders
     })
 
