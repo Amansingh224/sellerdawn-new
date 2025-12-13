@@ -98,7 +98,7 @@ export async function GET(request: Request) {
           timelineEvents: {
             create: [
               {
-                action: "Order created",
+                action: "ORDER_IMPORTED",
                 performedById: admin.id,
                 details: { source: "Seed data" }
               }
