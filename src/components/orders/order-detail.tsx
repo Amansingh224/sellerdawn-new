@@ -53,7 +53,7 @@ interface Order {
   shippingPhone: string | null
   tags: string[]
   note: string | null
-  createdAt: string
+  createdAt: Date | string
   designer: {
     id: string
     name: string
@@ -79,7 +79,7 @@ interface Order {
     filename: string
     fileUrl: string
     status: string
-    createdAt: string
+    createdAt: Date | string
     designer: {
       id: string
       name: string
@@ -89,7 +89,7 @@ interface Order {
     id: string
     action: string
     description: string
-    createdAt: string
+    createdAt: Date | string
     user: {
       id: string
       name: string

@@ -18,7 +18,7 @@ interface TimelineEvent {
   id: string
   action: string
   description: string
-  createdAt: string
+  createdAt: Date | string
   user: {
     id: string
     name: string
