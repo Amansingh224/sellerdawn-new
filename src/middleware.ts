@@ -33,9 +33,10 @@ export default auth((req) => {
   const isShopifyTestApi = pathname === "/api/shopify/test"
   const isCronApi = pathname === "/api/cron/sync"
   const isCleanupApi = pathname === "/api/cleanup"
+  const isResetApi = pathname === "/api/reset"
 
   // Allow public routes
-  if (isPublicRoute || isAuthApi || isShopifyWebhook || isApprovalApi || isHealthApi || isSetupApi || isDebugApi || isSeedApi || isDevLoginApi || isQuickConnectApi || isQuickSyncApi || isShopifyTestApi || isCronApi || isCleanupApi) {
+  if (isPublicRoute || isAuthApi || isShopifyWebhook || isApprovalApi || isHealthApi || isSetupApi || isDebugApi || isSeedApi || isDevLoginApi || isQuickConnectApi || isQuickSyncApi || isShopifyTestApi || isCronApi || isCleanupApi || isResetApi) {
     return
   }
 
