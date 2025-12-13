@@ -1,3 +1,6 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Package,
@@ -6,120 +9,150 @@ import {
   AlertCircle,
   FileImage,
   Printer,
-  Truck,
-  Users,
 } from "lucide-react"
 
 interface StatsProps {
   userRole: string
 }
 
-const adminStats = [
-  {
-    title: "Total Orders",
-    value: "0",
-    description: "All time",
-    icon: Package,
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/10",
-  },
-  {
-    title: "Pending Assignment",
-    value: "0",
-    description: "Needs designer",
-    icon: Clock,
-    color: "text-yellow-500",
-    bgColor: "bg-yellow-500/10",
-  },
-  {
-    title: "Awaiting Approval",
-    value: "0",
-    description: "Drafts sent",
-    icon: FileImage,
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
-  },
-  {
-    title: "Ready to Print",
-    value: "0",
-    description: "Approved drafts",
-    icon: Printer,
-    color: "text-green-500",
-    bgColor: "bg-green-500/10",
-  },
-]
-
-const designerStats = [
-  {
-    title: "Assigned Orders",
-    value: "0",
-    description: "Your queue",
-    icon: Package,
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/10",
-  },
-  {
-    title: "Drafts Pending",
-    value: "0",
-    description: "Awaiting approval",
-    icon: Clock,
-    color: "text-yellow-500",
-    bgColor: "bg-yellow-500/10",
-  },
-  {
-    title: "Rejections",
-    value: "0",
-    description: "Needs revision",
-    icon: AlertCircle,
-    color: "text-red-500",
-    bgColor: "bg-red-500/10",
-  },
-  {
-    title: "Completed Today",
-    value: "0",
-    description: "Approved",
-    icon: CheckCircle,
-    color: "text-green-500",
-    bgColor: "bg-green-500/10",
-  },
-]
-
-const printerStats = [
-  {
-    title: "Print Queue",
-    value: "0",
-    description: "Ready to print",
-    icon: Printer,
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/10",
-  },
-  {
-    title: "In Progress",
-    value: "0",
-    description: "Currently printing",
-    icon: Clock,
-    color: "text-yellow-500",
-    bgColor: "bg-yellow-500/10",
-  },
-  {
-    title: "QC Pending",
-    value: "0",
-    description: "Needs verification",
-    icon: AlertCircle,
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
-  },
-  {
-    title: "Completed Today",
-    value: "0",
-    description: "Printed & ready",
-    icon: CheckCircle,
-    color: "text-green-500",
-    bgColor: "bg-green-500/10",
-  },
-]
+interface StatItem {
+  title: string
+  value: number
+  description: string
+  icon: any
+  color: string
+  bgColor: string
+}
 
 export function DashboardStats({ userRole }: StatsProps) {
+  const [stats, setStats] = useState<{ key: string; value: number }[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch("/api/stats")
+        const data = await response.json()
+        setStats(data.stats || [])
+      } catch (error) {
+        console.error("Failed to fetch stats:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchStats()
+  }, [])
+
+  const getStatValue = (key: string) => {
+    const stat = stats.find(s => s.key === key)
+    return stat?.value ?? 0
+  }
+
+  const adminStats: StatItem[] = [
+    {
+      title: "Total Orders",
+      value: getStatValue("total"),
+      description: "All time",
+      icon: Package,
+      color: "text-blue-500",
+      bgColor: "bg-blue-500/10",
+    },
+    {
+      title: "Pending Assignment",
+      value: getStatValue("imported"),
+      description: "Needs designer",
+      icon: Clock,
+      color: "text-yellow-500",
+      bgColor: "bg-yellow-500/10",
+    },
+    {
+      title: "Awaiting Approval",
+      value: getStatValue("draftSent"),
+      description: "Drafts sent",
+      icon: FileImage,
+      color: "text-purple-500",
+      bgColor: "bg-purple-500/10",
+    },
+    {
+      title: "Ready to Print",
+      value: getStatValue("approved"),
+      description: "Approved drafts",
+      icon: Printer,
+      color: "text-green-500",
+      bgColor: "bg-green-500/10",
+    },
+  ]
+
+  const designerStats: StatItem[] = [
+    {
+      title: "Assigned Orders",
+      value: getStatValue("assigned"),
+      description: "Your queue",
+      icon: Package,
+      color: "text-blue-500",
+      bgColor: "bg-blue-500/10",
+    },
+    {
+      title: "Drafts Pending",
+      value: getStatValue("draftSent"),
+      description: "Awaiting approval",
+      icon: Clock,
+      color: "text-yellow-500",
+      bgColor: "bg-yellow-500/10",
+    },
+    {
+      title: "Rejections",
+      value: getStatValue("rejected"),
+      description: "Needs revision",
+      icon: AlertCircle,
+      color: "text-red-500",
+      bgColor: "bg-red-500/10",
+    },
+    {
+      title: "Completed Today",
+      value: getStatValue("completedToday"),
+      description: "Approved",
+      icon: CheckCircle,
+      color: "text-green-500",
+      bgColor: "bg-green-500/10",
+    },
+  ]
+
+  const printerStats: StatItem[] = [
+    {
+      title: "Print Queue",
+      value: getStatValue("printQueue"),
+      description: "Ready to print",
+      icon: Printer,
+      color: "text-blue-500",
+      bgColor: "bg-blue-500/10",
+    },
+    {
+      title: "Printed",
+      value: getStatValue("printed"),
+      description: "Completed",
+      icon: CheckCircle,
+      color: "text-yellow-500",
+      bgColor: "bg-yellow-500/10",
+    },
+    {
+      title: "Fulfilled",
+      value: getStatValue("fulfilled"),
+      description: "Shipped",
+      icon: Package,
+      color: "text-purple-500",
+      bgColor: "bg-purple-500/10",
+    },
+    {
+      title: "Completed Today",
+      value: getStatValue("completedToday"),
+      description: "Printed & ready",
+      icon: CheckCircle,
+      color: "text-green-500",
+      bgColor: "bg-green-500/10",
+    },
+  ]
+
   const getStats = () => {
     switch (userRole) {
       case "ADMIN":
@@ -133,11 +166,28 @@ export function DashboardStats({ userRole }: StatsProps) {
     }
   }
 
-  const stats = getStats()
+  const displayStats = getStats()
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i}>
+            <CardHeader className="pb-2">
+              <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+            </CardHeader>
+            <CardContent>
+              <div className="h-8 w-16 bg-muted animate-pulse rounded" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat) => (
+      {displayStats.map((stat) => (
         <Card key={stat.title}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">

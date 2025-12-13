@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { getApiSession } from "@/lib/api-session"
 import { db } from "@/lib/db"
 import { OrderStatus } from "@prisma/client"
 
@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   try {
-    const session = await auth()
+    const session = await getApiSession()
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
