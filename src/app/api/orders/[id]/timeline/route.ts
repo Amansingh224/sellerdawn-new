@@ -4,6 +4,8 @@ import { db } from "@/lib/db"
 import { TimelineAction } from "@prisma/client"
 import { syncTimelineToShopify } from "@/lib/shopify/sync"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }

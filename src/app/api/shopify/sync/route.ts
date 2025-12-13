@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { syncShopifyOrders } from "@/lib/shopify/sync"
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   try {
     const session = await auth()

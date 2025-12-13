@@ -5,6 +5,8 @@ import { OrderStatus, TimelineAction } from "@prisma/client"
 import { getShopifyClient } from "@/lib/shopify/client"
 import { syncTimelineToShopify } from "@/lib/shopify/sync"
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }

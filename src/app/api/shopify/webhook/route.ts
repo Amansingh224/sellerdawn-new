@@ -4,6 +4,8 @@ import crypto from "crypto"
 import { db } from "@/lib/db"
 import { syncShopifyOrders } from "@/lib/shopify/sync"
 
+export const dynamic = 'force-dynamic'
+
 // Verify Shopify webhook signature
 function verifyWebhook(body: string, signature: string, secret: string): boolean {
   const hmac = crypto
