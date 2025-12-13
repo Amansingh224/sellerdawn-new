@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { UserRole } from "@prisma/client"
 
+export const dynamic = 'force-dynamic'
+
 export default async function DesignersPage() {
   const session = await auth()
 

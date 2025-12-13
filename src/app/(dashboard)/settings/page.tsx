@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Store, Key, Bell, Users } from "lucide-react"
 
+export const dynamic = 'force-dynamic'
+
 export default async function SettingsPage() {
   const session = await auth()
 

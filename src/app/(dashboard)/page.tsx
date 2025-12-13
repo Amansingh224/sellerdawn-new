@@ -4,6 +4,8 @@ import { DashboardStats } from "@/components/dashboard/stats"
 import { RecentOrders } from "@/components/dashboard/recent-orders"
 import { ActivityFeed } from "@/components/dashboard/activity-feed"
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const session = await auth()
 

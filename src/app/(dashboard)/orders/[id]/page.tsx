@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { OrderDetail } from "@/components/orders/order-detail"
 
+export const dynamic = 'force-dynamic'
+
 interface OrderPageProps {
   params: {
     id: string

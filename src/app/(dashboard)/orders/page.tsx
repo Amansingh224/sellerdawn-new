@@ -5,6 +5,8 @@ import { OrdersTable } from "@/components/orders/orders-table"
 import { OrdersHeader } from "@/components/orders/orders-header"
 import { Skeleton } from "@/components/ui/skeleton"
 
+export const dynamic = 'force-dynamic'
+
 export default async function OrdersPage() {
   const session = await auth()
 

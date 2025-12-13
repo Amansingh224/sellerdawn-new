@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart3 } from "lucide-react"
 
+export const dynamic = 'force-dynamic'
+
 export default async function ReportsPage() {
   const session = await auth()
 

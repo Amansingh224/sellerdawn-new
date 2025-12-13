@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Truck } from "lucide-react"
 
+export const dynamic = 'force-dynamic'
+
 export default async function FulfillmentPage() {
   const session = await auth()
 
