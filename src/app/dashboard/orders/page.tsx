@@ -1,80 +1,28 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { db } from "@/lib/db"
+import { Suspense } from "react"
 import { OrdersTable } from "@/components/orders/orders-table"
-import { OrderFilters } from "@/components/orders/order-filters"
 import { Button } from "@/components/ui/button"
 import { RefreshCw } from "lucide-react"
 import Link from "next/link"
 
-interface OrdersPageProps {
-  searchParams: Promise<{
-    status?: string
-    designer?: string
-    search?: string
-    page?: string
-  }>
+function OrdersTableFallback() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+        <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
+      </div>
+    </div>
+  )
 }
 
-export default async function OrdersPage({ searchParams }: OrdersPageProps) {
+export default async function OrdersPage() {
   const session = await auth()
-  const params = await searchParams
 
   if (!session?.user) {
     redirect("/login")
   }
-
-  const page = Number(params.page) || 1
-  const pageSize = 20
-
-  // Build where clause based on filters
-  const where: Record<string, unknown> = {}
-
-  if (params.status) {
-    where.internalStatus = params.status
-  }
-
-  if (params.designer) {
-    where.designerId = params.designer
-  }
-
-  if (params.search) {
-    where.OR = [
-      { shopifyOrderNumber: { contains: params.search, mode: "insensitive" } },
-      { customerName: { contains: params.search, mode: "insensitive" } },
-      { customerEmail: { contains: params.search, mode: "insensitive" } },
-    ]
-  }
-
-  // If user is a designer, only show their assigned orders
-  if (session.user.role === "DESIGNER") {
-    where.designerId = session.user.id
-  }
-
-  const [orders, total, designers] = await Promise.all([
-    db.order.findMany({
-      where,
-      include: {
-        lineItems: true,
-        designer: {
-          select: { id: true, name: true },
-        },
-        _count: {
-          select: { drafts: true },
-        },
-      },
-      orderBy: { shopifyCreatedAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-    db.order.count({ where }),
-    db.user.findMany({
-      where: { role: "DESIGNER", isActive: true },
-      select: { id: true, name: true },
-    }),
-  ])
-
-  const totalPages = Math.ceil(total / pageSize)
 
   return (
     <div className="space-y-6">
@@ -93,14 +41,12 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
         </Button>
       </div>
 
-      <OrderFilters designers={designers} />
-
-      <OrdersTable
-        orders={orders}
-        currentPage={page}
-        totalPages={totalPages}
-        total={total}
-      />
+      <Suspense fallback={<OrdersTableFallback />}>
+        <OrdersTable
+          userRole={session.user.role}
+          userId={session.user.id}
+        />
+      </Suspense>
     </div>
   )
 }
