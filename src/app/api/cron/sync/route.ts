@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { db } from "@/lib/db"
 import { syncShopifyOrders } from "@/lib/shopify/sync"
 
 export const dynamic = 'force-dynamic'
@@ -15,13 +16,33 @@ export async function GET(request: Request) {
 
   try {
     console.log("Cron sync started at:", new Date().toISOString())
-    const result = await syncShopifyOrders()
-    console.log("Cron sync completed:", result)
+
+    // Find real stores (exclude demo)
+    const stores = await db.shopifyStore.findMany({
+      where: {
+        isActive: true,
+        domain: {
+          not: "demo-store.myshopify.com"
+        }
+      }
+    })
+
+    const results = []
+    for (const store of stores) {
+      const result = await syncShopifyOrders(store.id)
+      results.push({
+        store: store.domain,
+        ...result
+      })
+    }
+
+    console.log("Cron sync completed:", results)
 
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      result,
+      storesSynced: stores.length,
+      results,
     })
   } catch (error) {
     console.error("Cron sync error:", error)
