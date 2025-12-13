@@ -18,23 +18,23 @@ export default async function OrderPage({ params }: OrderPageProps) {
   const order = await db.order.findUnique({
     where: { id },
     include: {
-      lineItems: {
-        include: {
-          customerImages: true,
-        },
+      lineItems: true,
+      customerImages: true,
+      store: {
+        select: { id: true, name: true, domain: true },
       },
       designer: {
         select: { id: true, name: true, email: true },
       },
       drafts: {
         include: {
-          uploadedBy: {
+          designer: {
             select: { id: true, name: true },
           },
         },
         orderBy: { createdAt: "desc" },
       },
-      timeline: {
+      timelineEvents: {
         include: {
           user: {
             select: { id: true, name: true },
@@ -54,17 +54,11 @@ export default async function OrderPage({ params }: OrderPageProps) {
     redirect("/dashboard/orders")
   }
 
-  // Get list of designers for assignment dropdown
-  const designers = await db.user.findMany({
-    where: { role: "DESIGNER", isActive: true },
-    select: { id: true, name: true },
-  })
-
   return (
     <OrderDetail
       order={order}
-      designers={designers}
-      currentUser={session.user}
+      userRole={session.user.role}
+      userId={session.user.id}
     />
   )
 }
