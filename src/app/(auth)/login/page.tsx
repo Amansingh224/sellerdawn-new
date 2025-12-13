@@ -1,9 +1,26 @@
+import { Suspense } from "react"
 import { LoginForm } from "@/components/auth/login-form"
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Login - Seller Dawn",
   description: "Sign in to your Seller Dawn account",
+}
+
+function LoginFormFallback() {
+  return (
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <div className="h-4 w-24 bg-slate-200 rounded animate-pulse" />
+        <div className="h-11 w-full bg-slate-200 rounded animate-pulse" />
+      </div>
+      <div className="space-y-2">
+        <div className="h-4 w-20 bg-slate-200 rounded animate-pulse" />
+        <div className="h-11 w-full bg-slate-200 rounded animate-pulse" />
+      </div>
+      <div className="h-11 w-full bg-slate-200 rounded animate-pulse" />
+    </div>
+  )
 }
 
 export default function LoginPage() {
@@ -47,7 +64,9 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <LoginForm />
+          <Suspense fallback={<LoginFormFallback />}>
+            <LoginForm />
+          </Suspense>
         </div>
 
         {/* Footer */}
