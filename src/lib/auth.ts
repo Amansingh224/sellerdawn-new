@@ -10,8 +10,10 @@ const loginSchema = z.object({
 })
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   session: {
     strategy: "jwt",
@@ -58,37 +60,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const validatedFields = loginSchema.safeParse(credentials)
+        try {
+          const validatedFields = loginSchema.safeParse(credentials)
 
-        if (!validatedFields.success) {
+          if (!validatedFields.success) {
+            console.log("Auth: Invalid credentials format")
+            return null
+          }
+
+          const { email, password } = validatedFields.data
+
+          const user = await db.user.findUnique({
+            where: { email },
+          })
+
+          if (!user || !user.password) {
+            console.log("Auth: User not found:", email)
+            return null
+          }
+
+          const passwordMatch = await compare(password, user.password)
+
+          if (!passwordMatch) {
+            console.log("Auth: Password mismatch for:", email)
+            return null
+          }
+
+          if (!user.isActive) {
+            console.log("Auth: User inactive:", email)
+            return null
+          }
+
+          console.log("Auth: Login successful for:", email)
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          }
+        } catch (error) {
+          console.error("Auth error:", error)
           return null
-        }
-
-        const { email, password } = validatedFields.data
-
-        const user = await db.user.findUnique({
-          where: { email },
-        })
-
-        if (!user || !user.password) {
-          return null
-        }
-
-        const passwordMatch = await compare(password, user.password)
-
-        if (!passwordMatch) {
-          return null
-        }
-
-        if (!user.isActive) {
-          return null
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
         }
       },
     }),
