@@ -9,7 +9,11 @@ const loginSchema = z.object({
   password: z.string().min(6),
 })
 
+// Fallback secret for development - should be set via AUTH_SECRET env var in production
+const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "fallback-secret-change-me-in-production-xyz123"
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: authSecret,
   trustHost: true,
   pages: {
     signIn: "/login",

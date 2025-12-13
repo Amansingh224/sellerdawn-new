@@ -14,9 +14,10 @@ export default auth((req) => {
   const isApprovalApi = pathname.startsWith("/api/approval")
   const isHealthApi = pathname === "/api/health"
   const isSetupApi = pathname === "/api/setup"
+  const isDebugApi = pathname === "/api/auth-debug"
 
   // Allow public routes
-  if (isPublicRoute || isAuthApi || isShopifyWebhook || isApprovalApi || isHealthApi || isSetupApi) {
+  if (isPublicRoute || isAuthApi || isShopifyWebhook || isApprovalApi || isHealthApi || isSetupApi || isDebugApi) {
     return
   }
 
