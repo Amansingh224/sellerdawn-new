@@ -236,5 +236,5 @@ export function extractCustomerImages(order: ShopifyOrder): string[] {
     }
   }
 
-  return [...new Set(images)] // Remove duplicates
+  return Array.from(new Set(images)) // Remove duplicates
 }
